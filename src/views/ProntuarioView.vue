@@ -60,7 +60,7 @@ import PrescricoesTab from '../components/prontuario/PrescricoesTab.vue'
 import ArquivosTab from '../components/prontuario/ArquivosTab.vue'
 
 const route = useRoute()
-const patientId = route.params.id
+const patientId = Number(route.params.id)
 
 const patient = ref(null)
 const activeTab = ref('dados')

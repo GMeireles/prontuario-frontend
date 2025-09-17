@@ -5,9 +5,9 @@ export default {
     const res = await api.get(`/anamneses/patient/${patientId}`)
     return res.data
   },
-  async create(patientId, data) {
-    const res = await api.post(`/anamneses/patient/${patientId}`, data)
-    return res.data
+  async create(patientId, payload) {
+    const { data } = await api.post(`/anamneses/patient/${patientId}`, payload)
+    return data
   },
   async update(id, data) {
     const res = await api.put(`/anamneses/${id}`, data)
