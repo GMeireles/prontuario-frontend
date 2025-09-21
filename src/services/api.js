@@ -3,7 +3,10 @@ import { useAuthStore } from '../store/AuthStore'
 import router from '../router'
 
 const api = axios.create({
-  baseURL: 'https://dev.api.prontuario.vexial.com.br/api'
+  baseURL: import.meta.env.VITE_API_URL,
+    headers: {
+    "Content-Type": "application/json"
+  }
 })
 
 // Intercepta requests para incluir token
