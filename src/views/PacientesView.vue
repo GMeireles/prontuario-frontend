@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <h1 class="text-xl font-bold text-primary">Pacientes</h1>
-      <FormButton variant="primary" @click="openModal()">+ Novo Paciente</FormButton>
+      <FormButton v-if="can('patients.create')" variant="primary" @click="openModal()">+ Novo Paciente</FormButton>
     </div>
 
     <FormInput
@@ -34,10 +34,10 @@
           <FormButton size="sm" variant="primary" @click="goToProntuario(patient.id)">
             Prontuário
           </FormButton>
-          <FormButton size="sm" variant="secondary" @click="openModal(patient)">
+          <FormButton size="sm" variant="secondary" v-if="can('patients.update')" @click="openModal(patient)">
             Editar
           </FormButton>
-          <FormButton size="sm" variant="danger" @click="removePatient(patient.id)">
+          <FormButton size="sm" variant="danger" v-if="can('patients.delete')" @click="removePatient(patient.id)">
             Excluir
           </FormButton>
         </div>
@@ -70,8 +70,10 @@ import { FormInput, FormButton } from '../components/forms/index.js';
 import PatientModal from '../components/PatientModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import { listPatients, deletePatient } from '../api/patients.js';
+import { usePermissions } from '../composables/usePermissions.js';
 
 const router = useRouter();
+const { can } = usePermissions();
 
 const patients = ref([]);
 const loading = ref(true);

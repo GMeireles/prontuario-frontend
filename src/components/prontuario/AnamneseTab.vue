@@ -5,7 +5,7 @@
     <div v-if="loading" class="text-secondary">Carregando...</div>
     <div v-else-if="!anamnese">
       <p class="text-secondary mb-4">Nenhuma anamnese cadastrada.</p>
-      <FormButton variant="primary" @click="openModal()">Adicionar Anamnese</FormButton>
+      <FormButton v-if="can('anamneses.create')" variant="primary" @click="openModal()">Adicionar Anamnese</FormButton>
     </div>
     <div v-else class="rounded-lg border border-theme bg-secondary p-4 space-y-2">
       <p class="text-primary"><strong>Queixa principal:</strong> {{ anamnese.main_complaint }}</p>
@@ -14,7 +14,7 @@
       <p class="text-primary"><strong>Estilo de vida:</strong> {{ anamnese.lifestyle }}</p>
       <p class="text-primary"><strong>Alergias:</strong> {{ anamnese.allergies }}</p>
       <div class="mt-4">
-        <FormButton variant="secondary" size="sm" @click="openModal(anamnese)">Editar</FormButton>
+        <FormButton v-if="can('anamneses.update')" variant="secondary" size="sm" @click="openModal(anamnese)">Editar</FormButton>
       </div>
     </div>
 
@@ -48,7 +48,9 @@ import {
   createAnamnese,
   updateAnamnese,
 } from '../../api/anamneses.js';
+import { usePermissions } from '../../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const props = defineProps({
   patientId: { type: Number, required: true },
 });

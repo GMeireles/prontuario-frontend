@@ -10,7 +10,7 @@
         <option value="other">Outro</option>
       </FormSelect>
 
-      <label class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
+      <label v-if="can('files.upload')" class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
         Enviar Arquivo
         <input type="file" class="hidden" ref="fileInput" @change="handleUpload" />
       </label>
@@ -31,10 +31,10 @@
           <p class="text-xs text-secondary">{{ formatDate(file.created_at || file.createdAt) }}</p>
         </div>
         <div class="flex gap-3 shrink-0">
-          <button type="button" class="text-primary-color hover:underline text-sm" @click="downloadFile(file.id, file.filename)">
+          <button v-if="can('files.download')" type="button" class="text-primary-color hover:underline text-sm" @click="downloadFile(file.id, file.filename)">
             Baixar
           </button>
-          <button type="button" class="text-error hover:underline text-sm" @click="removeFile(file.id)">
+          <button v-if="can('files.upload')" type="button" class="text-error hover:underline text-sm" @click="removeFile(file.id)">
             Excluir
           </button>
         </div>
@@ -53,7 +53,9 @@ import {
   downloadFile as downloadFileAPI,
   deleteFile,
 } from '../../api/files.js';
+import { usePermissions } from '../../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const props = defineProps({
   patientId: { type: Number, required: true },
 });
@@ -75,8 +77,7 @@ function formatDate(date) {
 async function loadFiles() {
   loading.value = true;
   try {
-    const res = await listFilesByPatient(props.patientId);
-    files.value = Array.isArray(res) ? res : res?.data || [];
+    files.value = await listFilesByPatient(props.patientId);
   } catch {
     files.value = [];
     toast.error('Erro ao carregar arquivos');

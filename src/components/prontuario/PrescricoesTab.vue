@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <h2 class="text-lg font-bold text-primary">Prescrições</h2>
-      <FormButton variant="primary" @click="openCreateModal">Nova Prescrição</FormButton>
+      <FormButton v-if="can('prescriptions.create')" variant="primary" @click="openCreateModal">Nova Prescrição</FormButton>
     </div>
 
     <div class="flex flex-wrap gap-3">
@@ -31,14 +31,14 @@
             </small>
           </div>
           <div class="flex flex-wrap gap-2 shrink-0">
-            <FormButton size="sm" variant="secondary" @click="editPrescription(p)">Editar</FormButton>
-            <FormButton size="sm" variant="danger" @click="deletePrescription(p.id)">Excluir</FormButton>
+            <FormButton v-if="can('prescriptions.update')" size="sm" variant="secondary" @click="editPrescription(p)">Editar</FormButton>
+            <FormButton v-if="can('prescriptions.update')" size="sm" variant="danger" @click="deletePrescription(p.id)">Excluir</FormButton>
           </div>
         </div>
 
         <div class="mt-3 pt-3 border-t border-theme">
           <h4 class="font-medium mb-2 text-primary">Arquivos</h4>
-          <label class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
+          <label v-if="can('prescriptions.update')" class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
             Enviar Arquivo
             <input type="file" class="hidden" @change="(e) => handleFileUpload(e, p.id)" />
           </label>
@@ -130,7 +130,9 @@ import {
   removePrescriptionFile,
 } from '../../api/prescriptions.js';
 import { uploadFile, downloadFile as downloadFileAPI } from '../../api/files.js';
+import { usePermissions } from '../../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const props = defineProps({
   patientId: { type: Number, required: true },
 });

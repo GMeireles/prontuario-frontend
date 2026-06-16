@@ -38,27 +38,31 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPatient } from '../api/patients.js';
+import { usePermissions } from '../composables/usePermissions.js';
 import AnamneseTab from '../components/prontuario/AnamneseTab.vue';
 import EvolucoesTab from '../components/prontuario/EvolucoesTab.vue';
 import PrescricoesTab from '../components/prontuario/PrescricoesTab.vue';
 import ArquivosTab from '../components/prontuario/ArquivosTab.vue';
 
 const route = useRoute();
+const { can } = usePermissions();
 const patientId = Number(route.params.id);
 
 const patient = ref(null);
 const activeTab = ref('dados');
 
-const tabs = [
-  { key: 'dados', label: 'Dados' },
-  { key: 'anamnese', label: 'Anamnese' },
-  { key: 'evolucoes', label: 'Evoluções' },
-  { key: 'prescricoes', label: 'Prescrições' },
-  { key: 'arquivos', label: 'Arquivos' },
+const allTabs = [
+  { key: 'dados', label: 'Dados', permission: 'patients.view' },
+  { key: 'anamnese', label: 'Anamnese', permission: 'anamneses.view' },
+  { key: 'evolucoes', label: 'Evoluções', permission: 'evolutions.view' },
+  { key: 'prescricoes', label: 'Prescrições', permission: 'prescriptions.view' },
+  { key: 'arquivos', label: 'Arquivos', permission: 'files.view' },
 ];
+
+const tabs = computed(() => allTabs.filter((t) => can(t.permission)));
 
 function formatDate(date) {
   if (!date) return '-';

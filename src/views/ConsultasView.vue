@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <h1 class="text-xl font-bold text-primary">Consultas</h1>
-      <FormButton variant="primary" @click="openModal()">Nova Consulta</FormButton>
+      <FormButton v-if="can('appointments.create')" variant="primary" @click="openModal()">Nova Consulta</FormButton>
     </div>
 
     <div class="overflow-x-auto rounded-lg border border-theme bg-secondary">
@@ -28,10 +28,10 @@
             <td class="px-4 py-3 text-secondary">{{ formatTime(appointment.date_time) }}</td>
             <td class="px-4 py-3 text-right">
               <div class="flex flex-wrap justify-end gap-2">
-                <FormButton size="sm" variant="secondary" @click="openModal(appointment)">
+                <FormButton v-if="can('appointments.update')" size="sm" variant="secondary" @click="openModal(appointment)">
                   Editar
                 </FormButton>
-                <FormButton size="sm" variant="danger" @click="removeAppointment(appointment.id)">
+                <FormButton v-if="can('appointments.delete')" size="sm" variant="danger" @click="removeAppointment(appointment.id)">
                   Excluir
                 </FormButton>
               </div>
@@ -89,7 +89,9 @@ import {
 } from '../api/appointments.js';
 import { listPatients } from '../api/patients.js';
 import { listProfessionals } from '../api/users.js';
+import { usePermissions } from '../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const appointments = ref([]);
 const patients = ref([]);
 const professionals = ref([]);
