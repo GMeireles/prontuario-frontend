@@ -43,16 +43,27 @@ http.interceptors.response.use(
     const cfg = err?.config;
     const status = err?.response?.status;
 
-    if (status === 401 && !cfg?.url?.includes('/auth/login')) {
+    if (status === 401 && cfg && !cfg.url?.includes('/auth/login') && !cfg.url?.includes('/auth/refresh')) {
       try {
-        const { useAuthStore } = await import('../stores/auth.js');
         const authStore = useAuthStore();
+        if (authStore.refreshToken && !cfg.__isRetryAfterRefresh) {
+          cfg.__isRetryAfterRefresh = true;
+          await authStore.refresh();
+          cfg.headers.Authorization = `Bearer ${authStore.accessToken}`;
+          return http(cfg);
+        }
         authStore.logout();
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith(LOGIN_PATH)) {
           window.location.href = LOGIN_PATH;
         }
       } catch (e) {
-        console.error('Erro ao fazer logout:', e);
+        console.error('Erro ao renovar token:', e);
+        try {
+          const authStore = useAuthStore();
+          authStore.logout();
+        } catch {
+          /* ignore */
+        }
       }
       return Promise.reject(err);
     }

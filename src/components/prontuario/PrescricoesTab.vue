@@ -27,7 +27,7 @@
             <p class="text-secondary">{{ p.description }}</p>
             <small class="text-tertiary">
               {{ p.professional?.name }} —
-              {{ new Date(p.createdAt).toLocaleDateString() }}
+              {{ new Date(p.created_at || p.createdAt).toLocaleDateString() }}
             </small>
           </div>
           <div class="flex flex-wrap gap-2 shrink-0">
@@ -45,7 +45,7 @@
 
           <ul class="mt-3 space-y-2">
             <li
-              v-for="pf in p.prescription_files"
+              v-for="pf in (p.prescription_files || [])"
               :key="pf.id"
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border border-theme bg-primary"
             >
@@ -157,8 +157,8 @@ async function fetchPrescriptions() {
       limit: pagination.value.limit,
       type: filters.value.type,
     });
-    prescriptions.value = res.data;
-    pagination.value = res.pagination;
+    prescriptions.value = res.data || [];
+    pagination.value = res.pagination || { page: 1, totalPages: 1, limit: 10 };
   } catch {
     toast.error('Erro ao carregar prescrições');
   }

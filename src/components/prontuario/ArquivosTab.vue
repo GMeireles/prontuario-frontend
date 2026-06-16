@@ -5,11 +5,9 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
       <FormSelect v-model="selectedType" placeholder="Selecione o tipo" class="max-w-xs">
         <option value="exam">Exame</option>
-        <option value="atestado">Atestado</option>
-        <option value="encaminhamento">Encaminhamento</option>
-        <option value="raiox">Raio-X</option>
-        <option value="ultrassom">Ultrassom</option>
-        <option value="document">Outro Documento</option>
+        <option value="image">Imagem / Raio-X / Ultrassom</option>
+        <option value="document">Documento / Atestado / Encaminhamento</option>
+        <option value="other">Outro</option>
       </FormSelect>
 
       <label class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
@@ -30,7 +28,7 @@
       >
         <div class="min-w-0">
           <p class="font-semibold capitalize text-primary">{{ file.type }}</p>
-          <p class="text-xs text-secondary">{{ formatDate(file.createdAt) }}</p>
+          <p class="text-xs text-secondary">{{ formatDate(file.created_at || file.createdAt) }}</p>
         </div>
         <div class="flex gap-3 shrink-0">
           <button type="button" class="text-primary-color hover:underline text-sm" @click="downloadFile(file.id, file.filename)">
@@ -78,7 +76,7 @@ async function loadFiles() {
   loading.value = true;
   try {
     const res = await listFilesByPatient(props.patientId);
-    files.value = res.data || res;
+    files.value = Array.isArray(res) ? res : res?.data || [];
   } catch {
     files.value = [];
     toast.error('Erro ao carregar arquivos');

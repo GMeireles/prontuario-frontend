@@ -186,3 +186,17 @@ front-end/src/
 ---
 
 *Refatoração concluída conforme MIGRATION_PLAN.md Fase 2.*
+
+---
+
+## Fase 3 — Auditoria de integração (2026-06-16)
+
+Ver [`INTEGRATION_AUDIT_REPORT.md`](INTEGRATION_AUDIT_REPORT.md) para detalhes completos.
+
+**Correções frontend nesta fase:**
+- Refresh token automático no interceptor HTTP (401)
+- Tipos de arquivo alinhados ao ENUM do backend
+- `created_at` / unwrap de respostas `{ success, data }`
+- `fetchUser()` via `/auth/me` após login
+
+**Build pós-auditoria:** `npm run build` — OK (136 módulos).
