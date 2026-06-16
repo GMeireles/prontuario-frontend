@@ -51,7 +51,15 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.accessToken,
     userEmail: (state) => state.user?.email || null,
     userName: (state) => state.user?.name || state.user?.full_name || null,
+    userRole: (state) => state.user?.role || null,
+    userProfile: (state) => state.user?.profile || state.user?.role || null,
+    permissions: (state) => state.user?.permissions || [],
     isMaster: (state) => state.user?.role === 'admin',
+    can: (state) => (permission) => {
+      if (!permission) return true;
+      if (state.user?.role === 'admin') return true;
+      return (state.user?.permissions || []).includes(permission);
+    },
     masterPermissions: () => [],
     canMaster: (state) => () => state.user?.role === 'admin',
   },
@@ -82,7 +90,11 @@ export const useAuthStore = defineStore('auth', {
 
         return { success: true };
       } catch (error) {
-        this.error = error.response?.data?.error || error.message || 'Erro ao fazer login';
+        this.error =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          'Erro ao fazer login';
         throw error;
       } finally {
         this.loading = false;
@@ -97,6 +109,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { accessToken } = await refreshAPI(this.refreshToken);
         this.setSession(accessToken, this.refreshToken);
+        await this.fetchUser();
       } catch {
         this.logout();
       }
