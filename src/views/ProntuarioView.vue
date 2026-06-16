@@ -1,84 +1,71 @@
 <template>
-  <BaseLayout>
-    <div class="space-y-6">
-      <h1 class="text-2xl font-bold">Prontuário de {{ patient?.name }}</h1>
+  <div class="space-y-6">
+    <h1 class="text-2xl font-bold text-primary">Prontuário de {{ patient?.name }}</h1>
 
-      <!-- Abas -->
-      <div class="border-b">
-        <nav class="flex space-x-4">
-          <button
-            v-for="tab in tabs"
-            :key="tab.key"
-            @click="activeTab = tab.key"
-            class="px-4 py-2 font-medium"
-            :class="activeTab === tab.key ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-blue-600'"
-          >
-            {{ tab.label }}
-          </button>
-        </nav>
-      </div>
+    <div class="border-b border-theme overflow-x-auto">
+      <nav class="flex gap-1 min-w-max">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          type="button"
+          class="px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors"
+          :class="
+            activeTab === tab.key
+              ? 'border-b-2 border-primary text-primary-color'
+              : 'text-secondary hover:text-primary'
+          "
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </nav>
+    </div>
 
-      <!-- Conteúdo -->
-      <div v-if="activeTab === 'dados'">
-        <h2 class="text-lg font-semibold mb-2">Dados do Paciente</h2>
-        <div class="bg-white p-4 rounded shadow">
-          <p><strong>Nome:</strong> {{ patient?.name }}</p>
-          <p><strong>Email:</strong> {{ patient?.email || 'Sem e-mail' }}</p>
-          <p><strong>Data de Nascimento:</strong> {{ formatDate(patient?.birth_date) }}</p>
-        </div>
-      </div>
-
-      <div v-else-if="activeTab === 'anamnese'">
-        <AnamneseTab :patientId="patientId" />
-      </div>
-
-      <div v-else-if="activeTab === 'evolucoes'">
-        <EvolucoesTab :patientId="patientId" />
-      </div>
-
-      <div v-else-if="activeTab === 'prescricoes'">
-        <PrescricoesTab :patientId="patientId" />
-      </div>
-
-      <div v-else-if="activeTab === 'arquivos'">
-        <ArquivosTab :patientId="patientId" />
+    <div v-if="activeTab === 'dados'">
+      <h2 class="text-lg font-semibold mb-2 text-primary">Dados do Paciente</h2>
+      <div class="rounded-lg border border-theme bg-secondary p-4 space-y-2">
+        <p class="text-primary"><strong>Nome:</strong> {{ patient?.name }}</p>
+        <p class="text-primary"><strong>Email:</strong> {{ patient?.email || 'Sem e-mail' }}</p>
+        <p class="text-primary"><strong>Data de Nascimento:</strong> {{ formatDate(patient?.birth_date) }}</p>
       </div>
     </div>
-  </BaseLayout>
+
+    <AnamneseTab v-else-if="activeTab === 'anamnese'" :patient-id="patientId" />
+    <EvolucoesTab v-else-if="activeTab === 'evolucoes'" :patient-id="patientId" />
+    <PrescricoesTab v-else-if="activeTab === 'prescricoes'" :patient-id="patientId" />
+    <ArquivosTab v-else-if="activeTab === 'arquivos'" :patient-id="patientId" />
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import BaseLayout from '../layouts/BaseLayout.vue'
-import {PatientService} from '../services/PatientService'
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { getPatient } from '../api/patients.js';
+import AnamneseTab from '../components/prontuario/AnamneseTab.vue';
+import EvolucoesTab from '../components/prontuario/EvolucoesTab.vue';
+import PrescricoesTab from '../components/prontuario/PrescricoesTab.vue';
+import ArquivosTab from '../components/prontuario/ArquivosTab.vue';
 
-// Abas
-import AnamneseTab from '../components/prontuario/AnamneseTab.vue'
-import EvolucoesTab from '../components/prontuario/EvolucoesTab.vue'
-import PrescricoesTab from '../components/prontuario/PrescricoesTab.vue'
-import ArquivosTab from '../components/prontuario/ArquivosTab.vue'
+const route = useRoute();
+const patientId = Number(route.params.id);
 
-const route = useRoute()
-const patientId = Number(route.params.id)
-
-const patient = ref(null)
-const activeTab = ref('dados')
+const patient = ref(null);
+const activeTab = ref('dados');
 
 const tabs = [
   { key: 'dados', label: 'Dados' },
   { key: 'anamnese', label: 'Anamnese' },
   { key: 'evolucoes', label: 'Evoluções' },
   { key: 'prescricoes', label: 'Prescrições' },
-  { key: 'arquivos', label: 'Arquivos' }
-]
+  { key: 'arquivos', label: 'Arquivos' },
+];
 
 function formatDate(date) {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('pt-BR')
+  if (!date) return '-';
+  return new Date(date).toLocaleDateString('pt-BR');
 }
 
 onMounted(async () => {
-  patient.value = await PatientService.get(patientId)
-})
+  patient.value = await getPatient(patientId);
+});
 </script>

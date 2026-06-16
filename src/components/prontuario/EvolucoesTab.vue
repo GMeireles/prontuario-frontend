@@ -1,76 +1,44 @@
 <template>
   <div class="space-y-4">
-    <h2 class="text-lg font-semibold">Evoluções Clínicas</h2>
+    <h2 class="text-lg font-semibold text-primary">Evoluções Clínicas</h2>
 
-    <!-- Formulário -->
-    <div class="bg-white p-4 rounded shadow space-y-3">
-      <textarea
+    <div class="rounded-lg border border-theme bg-secondary p-4 space-y-3">
+      <FormTextarea
         v-model="newNote"
         placeholder="Escreva a evolução clínica..."
-        class="w-full border rounded p-2"
-      ></textarea>
-      <button
-        @click="addEvolution"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        :disabled="loading"
-      >
+        :rows="4"
+      />
+      <FormButton variant="primary" :disabled="loading" @click="addEvolution">
         Salvar Evolução
-      </button>
+      </FormButton>
     </div>
 
-    <!-- Lista -->
-    <div v-if="loading">Carregando evoluções...</div>
-    <div v-else-if="evolutions.length === 0" class="text-gray-600">
+    <div v-if="loading" class="text-secondary">Carregando evoluções...</div>
+    <div v-else-if="evolutions.length === 0" class="text-secondary">
       Nenhuma evolução registrada ainda.
     </div>
     <ul v-else class="space-y-3">
       <li
         v-for="ev in evolutions"
         :key="ev.id"
-        class="bg-white p-4 rounded shadow"
+        class="rounded-lg border border-theme bg-secondary p-4"
       >
-        <!-- Editando -->
         <div v-if="editingId === ev.id" class="space-y-2">
-          <textarea
-            v-model="editNote"
-            class="w-full border rounded p-2"
-          ></textarea>
-          <div class="flex justify-end space-x-2">
-            <button
-              @click="updateEvolution(ev.id)"
-              class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-            >
-              Salvar
-            </button>
-            <button
-              @click="cancelEdit"
-              class="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
-            >
-              Cancelar
-            </button>
+          <FormTextarea v-model="editNote" :rows="4" />
+          <div class="flex justify-end gap-2">
+            <FormButton size="sm" variant="primary" @click="updateEvolution(ev.id)">Salvar</FormButton>
+            <FormButton size="sm" variant="secondary" @click="cancelEdit">Cancelar</FormButton>
           </div>
         </div>
-
-        <!-- Exibição normal -->
         <div v-else>
-          <p class="text-gray-800 whitespace-pre-line">{{ ev.note }}</p>
-          <div
-            class="flex justify-between items-center mt-2 text-sm text-gray-500"
-          >
-            <span>
-              {{ formatDate(ev.created_at) }} - {{ ev.professional?.name || 'Profissional' }}
-            </span>
-            <div class="flex space-x-3">
-              <button
-                @click="startEdit(ev)"
-                class="text-blue-600 hover:underline"
-              >
+          <p class="text-primary whitespace-pre-line">{{ ev.note }}</p>
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-2 text-sm text-secondary">
+            <span>{{ formatDate(ev.created_at) }} — {{ ev.professional?.name || 'Profissional' }}</span>
+            <div class="flex gap-3">
+              <button type="button" class="text-primary-color hover:underline" @click="startEdit(ev)">
                 Editar
               </button>
-              <button
-                @click="removeEvolution(ev.id)"
-                class="text-red-600 hover:underline"
-              >
+              <button type="button" class="text-error hover:underline" @click="removeEvolution(ev.id)">
                 Excluir
               </button>
             </div>
@@ -82,105 +50,102 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
-import EvolutionService from '../../services/EvolutionService'
+import { ref, onMounted } from 'vue';
+import { toast } from 'vue3-toastify';
+import { FormTextarea, FormButton } from '../forms/index.js';
+import {
+  listEvolutionsByPatient,
+  createEvolution,
+  updateEvolution as updateEvolutionAPI,
+  deleteEvolution,
+} from '../../api/evolutions.js';
 
 const props = defineProps({
-  patientId: { type: Number, required: true }
-})
+  patientId: { type: Number, required: true },
+});
 
-const evolutions = ref([])
-const newNote = ref('')
-const loading = ref(false)
-
-// estado edição
-const editingId = ref(null)
-const editNote = ref('')
+const evolutions = ref([]);
+const newNote = ref('');
+const loading = ref(false);
+const editingId = ref(null);
+const editNote = ref('');
 
 function formatDate(date) {
-  if (!date) return 'Data inválida'
+  if (!date) return 'Data inválida';
   try {
     return new Date(date).toLocaleString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    })
+      minute: '2-digit',
+    });
   } catch {
-    return 'Data inválida'
+    return 'Data inválida';
   }
 }
 
 async function loadEvolutions() {
-  loading.value = true
+  loading.value = true;
   try {
-    evolutions.value = await EvolutionService.getByPatient(props.patientId)
-    console.log("DEBUG evolutions after fix:", evolutions.value)
-  } catch (err) {
-    console.error("Erro ao carregar evoluções:", err)
-    evolutions.value = []
-    toast.error('Erro ao carregar evoluções')
+    evolutions.value = (await listEvolutionsByPatient(props.patientId)) || [];
+  } catch {
+    evolutions.value = [];
+    toast.error('Erro ao carregar evoluções');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-
 async function addEvolution() {
   if (!newNote.value.trim()) {
-    return toast.error('A evolução não pode estar vazia')
+    return toast.error('A evolução não pode estar vazia');
   }
   try {
-    await EvolutionService.create(props.patientId, { note: newNote.value })
-    toast.success('Evolução adicionada com sucesso!')
-    newNote.value = ''
-    await loadEvolutions()
-  } catch (err) {
-    console.error('Erro ao adicionar evolução:', err)
-    toast.error('Erro ao adicionar evolução')
+    await createEvolution(props.patientId, { note: newNote.value });
+    toast.success('Evolução adicionada com sucesso!');
+    newNote.value = '';
+    await loadEvolutions();
+  } catch {
+    toast.error('Erro ao adicionar evolução');
   }
 }
 
 async function removeEvolution(id) {
-  if (!confirm('Tem certeza que deseja excluir esta evolução?')) return
+  if (!confirm('Tem certeza que deseja excluir esta evolução?')) return;
   try {
-    await EvolutionService.remove(id)
-    toast.success('Evolução excluída com sucesso!')
-    await loadEvolutions()
-  } catch (err) {
-    console.error('Erro ao excluir evolução:', err)
-    toast.error('Erro ao excluir evolução')
+    await deleteEvolution(id);
+    toast.success('Evolução excluída com sucesso!');
+    await loadEvolutions();
+  } catch {
+    toast.error('Erro ao excluir evolução');
   }
 }
 
 function startEdit(ev) {
-  editingId.value = ev.id
-  editNote.value = ev.note
+  editingId.value = ev.id;
+  editNote.value = ev.note;
 }
 
 function cancelEdit() {
-  editingId.value = null
-  editNote.value = ''
+  editingId.value = null;
+  editNote.value = '';
 }
 
 async function updateEvolution(id) {
   if (!editNote.value.trim()) {
-    return toast.error('A evolução não pode estar vazia')
+    return toast.error('A evolução não pode estar vazia');
   }
   try {
-    await EvolutionService.update(id, { note: editNote.value })
-    toast.success('Evolução atualizada com sucesso!')
-    editingId.value = null
-    editNote.value = ''
-    await loadEvolutions()
-  } catch (err) {
-    console.error('Erro ao atualizar evolução:', err)
-    toast.error('Erro ao atualizar evolução')
+    await updateEvolutionAPI(id, { note: editNote.value });
+    toast.success('Evolução atualizada com sucesso!');
+    editingId.value = null;
+    editNote.value = '';
+    await loadEvolutions();
+  } catch {
+    toast.error('Erro ao atualizar evolução');
   }
 }
 
-onMounted(loadEvolutions)
+onMounted(loadEvolutions);
 </script>

@@ -1,164 +1,60 @@
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-      <h2 class="text-lg font-bold">Prescrições</h2>
-      <button
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        @click="openCreateModal"
-      >
-        Nova Prescrição
-      </button>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <h2 class="text-lg font-bold text-primary">Prescrições</h2>
+      <FormButton variant="primary" @click="openCreateModal">Nova Prescrição</FormButton>
     </div>
 
-    <!-- Filtros -->
-    <div class="flex space-x-3">
-      <select v-model="filters.type" class="border rounded px-2 py-1">
+    <div class="flex flex-wrap gap-3">
+      <FormSelect v-model="filters.type" placeholder="Todos os tipos" class="max-w-xs">
         <option value="">Todos os tipos</option>
         <option value="medication">Medicação</option>
         <option value="conduct">Conduta</option>
         <option value="referral">Encaminhamento</option>
-      </select>
-      <button
-        class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-        @click="fetchPrescriptions"
-      >
-        Filtrar
-      </button>
+      </FormSelect>
+      <FormButton variant="secondary" size="sm" @click="fetchPrescriptions">Filtrar</FormButton>
     </div>
 
-    <!-- Lista -->
     <div v-if="prescriptions.length" class="space-y-4">
       <div
         v-for="p in prescriptions"
         :key="p.id"
-        class="border rounded p-4 shadow-sm bg-white"
+        class="rounded-lg border border-theme bg-secondary p-4"
       >
-        <div class="flex justify-between items-center">
-          <div>
-            <h3 class="font-semibold capitalize">{{ p.type }}</h3>
-            <p>{{ p.description }}</p>
-            <small class="text-gray-500">
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+          <div class="min-w-0">
+            <h3 class="font-semibold capitalize text-primary">{{ p.type }}</h3>
+            <p class="text-secondary">{{ p.description }}</p>
+            <small class="text-tertiary">
               {{ p.professional?.name }} —
               {{ new Date(p.createdAt).toLocaleDateString() }}
             </small>
           </div>
-          <div class="space-x-2">
-            <button class="text-blue-600" @click="editPrescription(p)">
-              Editar
-            </button>
-            <button class="text-red-600" @click="deletePrescription(p.id)">
-              Excluir
-            </button>
+          <div class="flex flex-wrap gap-2 shrink-0">
+            <FormButton size="sm" variant="secondary" @click="editPrescription(p)">Editar</FormButton>
+            <FormButton size="sm" variant="danger" @click="deletePrescription(p.id)">Excluir</FormButton>
           </div>
         </div>
 
-        <!-- Arquivos -->
-        <div class="mt-3">
-          <h4 class="font-medium mb-2">Arquivos</h4>
+        <div class="mt-3 pt-3 border-t border-theme">
+          <h4 class="font-medium mb-2 text-primary">Arquivos</h4>
+          <label class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
+            Enviar Arquivo
+            <input type="file" class="hidden" @change="(e) => handleFileUpload(e, p.id)" />
+          </label>
 
-          <!-- Seletor de tipo + Upload -->
-          <div class="flex items-center space-x-3">
-
-            <label
-              class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-200 transition"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 8l-3-3m3 3l3-3"
-                />
-              </svg>
-              Enviar Arquivo
-              <input
-                type="file"
-                class="hidden"
-                @change="e => handleFileUpload(e, p.id)"
-              />
-            </label>
-          </div>
-
-          <!-- Listagem de arquivos -->
           <ul class="mt-3 space-y-2">
             <li
               v-for="pf in p.prescription_files"
               :key="pf.id"
-              class="flex items-center justify-between p-3 border rounded-lg bg-gray-50 hover:bg-gray-100 transition"
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border border-theme bg-primary"
             >
-              <div class="flex items-center space-x-3">
-                <!-- Ícone dinâmico -->
-                <svg
-                  v-if="pf.file.type === 'prescription'"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 21h10a2 2 0 002-2V7l-6-6H7a2 2 0 00-2 2v16a2 2 0 002 2z"
-                  />
-                </svg>
-                <svg
-                  v-else-if="pf.file.type === 'exam'"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v8m-4-4h8m-6 8h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v12z"
-                  />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 21h10a2 2 0 002-2V7l-6-6H7a2 2 0 00-2 2v16a2 2 0 002 2z"
-                  />
-                </svg>
-
-                <span
-                  class="text-gray-700 font-medium truncate w-48"
-                >
-                  {{ pf.file.type }} - {{ pf.file.filename }}
-                </span>
-              </div>
-
-              <div class="flex space-x-3">
-                <button
-                  class="text-blue-600 hover:text-blue-800 font-medium"
-                  @click="downloadFile(pf.file.id, pf.file.filename)"
-                >
+              <span class="text-secondary truncate">{{ pf.file.type }} - {{ pf.file.filename }}</span>
+              <div class="flex gap-3 shrink-0">
+                <button type="button" class="text-primary-color hover:underline text-sm" @click="downloadFile(pf.file.id, pf.file.filename)">
                   Download
                 </button>
-                <button
-                  class="text-red-600 hover:text-red-800 font-medium"
-                  @click="removeFile(p.id, pf.file.id)"
-                >
+                <button type="button" class="text-error hover:underline text-sm" @click="removeFile(p.id, pf.file.id)">
                   Remover
                 </button>
               </div>
@@ -168,228 +64,201 @@
       </div>
     </div>
 
-    <div v-else class="text-gray-500">Nenhuma prescrição encontrada.</div>
+    <div v-else class="text-secondary">Nenhuma prescrição encontrada.</div>
 
-    <!-- Paginação -->
-    <div class="flex justify-between items-center mt-4">
-      <button
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
+      <FormButton
+        variant="secondary"
+        size="sm"
         :disabled="pagination.page === 1"
         @click="changePage(pagination.page - 1)"
-        class="px-3 py-1 border rounded disabled:opacity-50"
       >
         Anterior
-      </button>
-      <span>Página {{ pagination.page }} de {{ pagination.totalPages }}</span>
-      <button
+      </FormButton>
+      <span class="text-secondary text-sm">Página {{ pagination.page }} de {{ pagination.totalPages }}</span>
+      <FormButton
+        variant="secondary"
+        size="sm"
         :disabled="pagination.page === pagination.totalPages"
         @click="changePage(pagination.page + 1)"
-        class="px-3 py-1 border rounded disabled:opacity-50"
       >
         Próxima
-      </button>
+      </FormButton>
     </div>
 
-    <!-- Modal criar/editar -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+    <BaseModal
+      v-model="showModal"
+      :title="editing ? 'Editar Prescrição' : 'Nova Prescrição'"
+      size="lg"
     >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-        <h3 class="text-lg font-bold mb-4">
-          {{ editing ? "Editar Prescrição" : "Nova Prescrição" }}
-        </h3>
+      <form @submit.prevent="savePrescription" class="space-y-3">
+        <FormSelect v-model="form.type" label="Tipo" placeholder="Selecione o tipo" required>
+          <option value="medication">Medicação</option>
+          <option value="conduct">Conduta</option>
+          <option value="referral">Encaminhamento</option>
+        </FormSelect>
+        <FormTextarea v-model="form.description" label="Descrição" required :rows="3" />
+        <FormInput v-model="form.dosage" label="Dosagem" />
+        <FormInput v-model="form.frequency" label="Frequência" />
+        <FormInput v-model="form.duration" label="Duração" />
+      </form>
 
-        <form @submit.prevent="savePrescription">
-          <div class="space-y-3">
-            <select v-model="form.type" required class="border rounded w-full px-2 py-1">
-              <option disabled value="">Selecione o tipo</option>
-              <option value="medication">Medicação</option>
-              <option value="conduct">Conduta</option>
-              <option value="referral">Encaminhamento</option>
-            </select>
-
-            <textarea
-              v-model="form.description"
-              placeholder="Descrição"
-              required
-              class="border rounded w-full px-2 py-1"
-            />
-
-            <input
-              v-model="form.dosage"
-              placeholder="Dosagem"
-              class="border rounded w-full px-2 py-1"
-            />
-            <input
-              v-model="form.frequency"
-              placeholder="Frequência"
-              class="border rounded w-full px-2 py-1"
-            />
-            <input
-              v-model="form.duration"
-              placeholder="Duração"
-              class="border rounded w-full px-2 py-1"
-            />
-          </div>
-
-          <div class="flex justify-end space-x-2 mt-4">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2 bg-gray-200 rounded"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <template #footer>
+        <FormButton variant="secondary" @click="closeModal">Cancelar</FormButton>
+        <FormButton variant="primary" @click="savePrescription">Salvar</FormButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import PrescriptionService from '@/services/PrescriptionService'
-import FileService from '@/services/FileService'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import { ref, onMounted } from 'vue';
+import { toast } from 'vue3-toastify';
+import {
+  BaseModal,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormButton,
+} from '../forms/index.js';
+import {
+  listPrescriptionsByPatient,
+  createPrescription,
+  updatePrescription,
+  deletePrescription as deletePrescriptionAPI,
+  addPrescriptionFile,
+  removePrescriptionFile,
+} from '../../api/prescriptions.js';
+import { uploadFile, downloadFile as downloadFileAPI } from '../../api/files.js';
 
 const props = defineProps({
-  patientId: { type: Number, required: true }
-})
+  patientId: { type: Number, required: true },
+});
 
-const prescriptions = ref([])
-const pagination = ref({ page: 1, totalPages: 1, limit: 10 })
-const filters = ref({ type: '' })
-const selectedType = ref('') // tipo de documento para upload
+const prescriptions = ref([]);
+const pagination = ref({ page: 1, totalPages: 1, limit: 10 });
+const filters = ref({ type: '' });
 
-const showModal = ref(false)
-const editing = ref(false)
+const showModal = ref(false);
+const editing = ref(false);
 const form = ref({
   id: null,
   type: '',
   description: '',
   dosage: '',
   frequency: '',
-  duration: ''
-})
+  duration: '',
+});
 
 async function fetchPrescriptions() {
   try {
-    const res = await PrescriptionService.getByPatient(props.patientId, {
+    const res = await listPrescriptionsByPatient(props.patientId, {
       page: pagination.value.page,
       limit: pagination.value.limit,
-      type: filters.value.type
-    })
-    prescriptions.value = res.data
-    pagination.value = res.pagination
-  } catch (e) {
-    toast.error('Erro ao carregar prescrições')
+      type: filters.value.type,
+    });
+    prescriptions.value = res.data;
+    pagination.value = res.pagination;
+  } catch {
+    toast.error('Erro ao carregar prescrições');
   }
 }
 
 async function downloadFile(fileId, filename) {
   try {
-    await FileService.download(fileId, filename)
-  } catch (e) {
-    toast.error('Erro ao baixar arquivo')
+    await downloadFileAPI(fileId, filename);
+  } catch {
+    toast.error('Erro ao baixar arquivo');
   }
 }
 
 function changePage(page) {
-  pagination.value.page = page
-  fetchPrescriptions()
+  pagination.value.page = page;
+  fetchPrescriptions();
 }
 
 function openCreateModal() {
-  editing.value = false
+  editing.value = false;
   form.value = {
     id: null,
     type: '',
     description: '',
     dosage: '',
     frequency: '',
-    duration: ''
-  }
-  showModal.value = true
+    duration: '',
+  };
+  showModal.value = true;
 }
 
 function editPrescription(p) {
-  editing.value = true
-  form.value = { ...p }
-  showModal.value = true
+  editing.value = true;
+  form.value = { ...p };
+  showModal.value = true;
 }
 
 async function savePrescription() {
   try {
     if (editing.value) {
-      await PrescriptionService.update(form.value.id, form.value)
-      toast.success('Prescrição atualizada!')
+      await updatePrescription(form.value.id, form.value);
+      toast.success('Prescrição atualizada!');
     } else {
-      await PrescriptionService.create({
+      await createPrescription({
         ...form.value,
-        patient_id: props.patientId
-      })
-      toast.success('Prescrição criada!')
+        patient_id: props.patientId,
+      });
+      toast.success('Prescrição criada!');
     }
-    showModal.value = false
-    fetchPrescriptions()
-  } catch (e) {
-    toast.error('Erro ao salvar prescrição')
+    showModal.value = false;
+    fetchPrescriptions();
+  } catch {
+    toast.error('Erro ao salvar prescrição');
   }
 }
 
 async function deletePrescription(id) {
-  if (!confirm('Deseja excluir esta prescrição?')) return
+  if (!confirm('Deseja excluir esta prescrição?')) return;
   try {
-    await PrescriptionService.remove(id)
-    toast.success('Prescrição removida!')
-    fetchPrescriptions()
+    await deletePrescriptionAPI(id);
+    toast.success('Prescrição removida!');
+    fetchPrescriptions();
   } catch {
-    toast.error('Erro ao excluir prescrição')
+    toast.error('Erro ao excluir prescrição');
   }
 }
 
 async function handleFileUpload(e, prescriptionId) {
-  const file = e.target.files[0]
-  if (!file) return
+  const file = e.target.files[0];
+  if (!file) return;
 
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('patient_id', props.patientId)
-    formData.append('type', 'prescription')
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('patient_id', props.patientId);
+    formData.append('type', 'prescription');
 
-    const uploaded = await FileService.upload(formData)
-
-    await PrescriptionService.addFile(prescriptionId, uploaded.id)
-    toast.success('Arquivo anexado!')
-    fetchPrescriptions()
-  } catch (e) {
-    toast.error('Erro ao anexar arquivo')
+    const uploaded = await uploadFile(formData);
+    await addPrescriptionFile(prescriptionId, uploaded.id);
+    toast.success('Arquivo anexado!');
+    fetchPrescriptions();
+  } catch {
+    toast.error('Erro ao anexar arquivo');
   }
 }
 
 async function removeFile(prescriptionId, fileId) {
-  if (!confirm('Deseja remover este arquivo?')) return
+  if (!confirm('Deseja remover este arquivo?')) return;
   try {
-    await PrescriptionService.removeFile(prescriptionId, fileId)
-    toast.success('Arquivo removido!')
-    fetchPrescriptions()
+    await removePrescriptionFile(prescriptionId, fileId);
+    toast.success('Arquivo removido!');
+    fetchPrescriptions();
   } catch {
-    toast.error('Erro ao remover arquivo')
+    toast.error('Erro ao remover arquivo');
   }
 }
 
-onMounted(fetchPrescriptions)
+onMounted(fetchPrescriptions);
 
 function closeModal() {
-  showModal.value = false
+  showModal.value = false;
 }
 </script>
