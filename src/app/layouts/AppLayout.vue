@@ -32,6 +32,13 @@
                 <RouterLink :to="`${APP_PREFIX}/consultas`" class="nav-item">Agenda</RouterLink>
               </div>
             </div>
+            <div v-if="can('billing.view')">
+              <h3 class="nav-title">Administração</h3>
+              <div class="flex flex-col gap-1 mt-2">
+                <RouterLink :to="SETTINGS_PATH" class="nav-item">Configurações</RouterLink>
+                <RouterLink :to="SUBSCRIPTION_PATH" class="nav-item">Planos e Assinatura</RouterLink>
+              </div>
+            </div>
           </nav>
 
           <div class="mt-6 flex-shrink-0">
@@ -97,6 +104,7 @@
       </header>
 
       <main class="mx-auto max-w-7xl w-full min-w-0 px-4 py-6">
+        <SubscriptionBanner />
         <RouterView />
       </main>
 
@@ -113,14 +121,19 @@ import { useRoute, useRouter } from 'vue-router';
 import { useTenantStore } from '../../stores/tenant.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { APP_NAME } from '../../constants/branding.js';
-import { APP_PREFIX, MASTER_ENTRY, LOGIN_PATH } from '../../router/constants.js';
+import { APP_PREFIX, MASTER_ENTRY, LOGIN_PATH, SETTINGS_PATH, SUBSCRIPTION_PATH } from '../../router/constants.js';
+import SubscriptionBanner from '../../components/SubscriptionBanner.vue';
 import ThemeSwitcher from '../../components/ThemeSwitcher.vue';
+import { usePermissions } from '../../composables/usePermissions.js';
+import { useBillingStore } from '../../stores/billingStore.js';
 
 const route = useRoute();
 const router = useRouter();
 const title = computed(() => route.meta?.title ?? 'Painel');
 const tenantStore = useTenantStore();
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
+const { can } = usePermissions();
 const appName = APP_NAME;
 
 const accountMenuOpen = ref(false);
@@ -134,6 +147,9 @@ const closeAccountMenuOnOutside = (e) => {
 
 onMounted(() => {
   document.addEventListener('click', closeAccountMenuOnOutside);
+  if (can('billing.view')) {
+    billingStore.fetchSubscription().catch(() => {});
+  }
 });
 onUnmounted(() => {
   document.removeEventListener('click', closeAccountMenuOnOutside);

@@ -10,11 +10,16 @@ const PacientesView = () => import('../views/PacientesView.vue');
 const ConsultasView = () => import('../views/ConsultasView.vue');
 const ProntuarioView = () => import('../views/ProntuarioView.vue');
 const TenantsView = () => import('../views/TenantsView.vue');
+const BillingView = () => import('../views/BillingView.vue');
+const SettingsView = () => import('../views/SettingsView.vue');
 
 const legacyRedirects = [
   ['/dashboard', `${APP_PREFIX}/dashboard`],
   ['/patients', `${APP_PREFIX}/pacientes`],
   ['/consultas', `${APP_PREFIX}/consultas`],
+  ['/assinatura', `${APP_PREFIX}/billing`],
+  ['/billing', `${APP_PREFIX}/billing`],
+  ['/settings', `${APP_PREFIX}/settings`],
   ['/tenants', `${MASTER_PREFIX}/clinicas`],
 ].map(([path, redirect]) => ({ path, redirect }));
 
@@ -72,6 +77,18 @@ export const router = createRouter({
           name: 'app-prontuario',
           component: ProntuarioView,
           meta: { title: 'Prontuário', requiresFeature: 'patients' },
+        },
+        {
+          path: 'billing',
+          name: 'app-billing',
+          component: BillingView,
+          meta: { title: 'Planos e Assinatura', requiresFeature: 'billing.view' },
+        },
+        {
+          path: 'settings',
+          name: 'app-settings',
+          component: SettingsView,
+          meta: { title: 'Configurações', requiresFeature: 'billing.view' },
         },
       ],
     },
