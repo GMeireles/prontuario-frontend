@@ -1,21 +1,14 @@
 import http from './http.js';
-
-/** Desembrulha respostas { success, data } ou retorna payload direto. */
-export function unwrapData(payload) {
-  if (payload && typeof payload === 'object' && 'data' in payload && 'success' in payload) {
-    return payload.data;
-  }
-  return payload;
-}
+import { unwrapData, unwrapList } from './response.js';
 
 export function uploadFile(formData) {
   return http.post('/files', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-  }).then((r) => r.data);
+  }).then((r) => unwrapData(r.data));
 }
 
 export function listFilesByPatient(patientId) {
-  return http.get(`/files/${patientId}`).then((r) => unwrapData(r.data));
+  return http.get(`/files/${patientId}`).then((r) => unwrapList(r.data));
 }
 
 export async function downloadFile(fileId, filename = 'arquivo') {
@@ -32,5 +25,5 @@ export async function downloadFile(fileId, filename = 'arquivo') {
 }
 
 export function deleteFile(fileId) {
-  return http.delete(`/files/${fileId}`).then((r) => r.data);
+  return http.delete(`/files/${fileId}`).then((r) => unwrapData(r.data));
 }
