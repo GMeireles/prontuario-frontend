@@ -233,3 +233,14 @@ Ver [`../PHASE_6_PATIENTS_AASI_REPORT.md`](../PHASE_6_PATIENTS_AASI_REPORT.md).
 - Abas Resumo, Agenda, AASI no prontuário
 - `PatientAasiTab`, `PatientSummaryTab`, `api/patientAasis.js`
 - Build: OK
+
+---
+
+## Fase 7 — Anamnese flexível + assinatura (2026-06-16)
+
+Ver [`../PHASE_7_ANAMNESE_SIGNATURE_REPORT.md`](../PHASE_7_ANAMNESE_SIGNATURE_REPORT.md).
+
+- `DynamicFormRenderer`, `AnamneseSignatureModal`, `AnamneseLegacyView`
+- Refatoração `AnamneseTab` (legado/flexível/assinatura)
+- `AnamneseTemplatesView` + rota `/app/settings/anamnese-templates`
+- Build: OK

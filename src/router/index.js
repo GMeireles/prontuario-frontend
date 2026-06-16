@@ -12,6 +12,7 @@ const ProntuarioView = () => import('../views/ProntuarioView.vue');
 const TenantsView = () => import('../views/TenantsView.vue');
 const BillingView = () => import('../views/BillingView.vue');
 const SettingsView = () => import('../views/SettingsView.vue');
+const AnamneseTemplatesView = () => import('../views/AnamneseTemplatesView.vue');
 
 const legacyRedirects = [
   ['/dashboard', `${APP_PREFIX}/dashboard`],
@@ -89,6 +90,12 @@ export const router = createRouter({
           name: 'app-settings',
           component: SettingsView,
           meta: { title: 'Configurações', requiresFeature: 'billing.view' },
+        },
+        {
+          path: 'settings/anamnese-templates',
+          name: 'app-anamnese-templates',
+          component: AnamneseTemplatesView,
+          meta: { title: 'Modelos de Anamnese' },
         },
       ],
     },

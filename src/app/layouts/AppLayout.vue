@@ -32,11 +32,18 @@
                 <RouterLink :to="`${APP_PREFIX}/consultas`" class="nav-item">Agenda</RouterLink>
               </div>
             </div>
-            <div v-if="can('billing.view')">
+            <div v-if="can('billing.view') || can('anamnese_templates.view')">
               <h3 class="nav-title">Administração</h3>
               <div class="flex flex-col gap-1 mt-2">
-                <RouterLink :to="SETTINGS_PATH" class="nav-item">Configurações</RouterLink>
-                <RouterLink :to="SUBSCRIPTION_PATH" class="nav-item">Planos e Assinatura</RouterLink>
+                <RouterLink v-if="can('billing.view')" :to="SETTINGS_PATH" class="nav-item">Configurações</RouterLink>
+                <RouterLink
+                  v-if="can('anamnese_templates.view')"
+                  :to="`${APP_PREFIX}/settings/anamnese-templates`"
+                  class="nav-item"
+                >
+                  Modelos de Anamnese
+                </RouterLink>
+                <RouterLink v-if="can('billing.view')" :to="SUBSCRIPTION_PATH" class="nav-item">Planos e Assinatura</RouterLink>
               </div>
             </div>
           </nav>

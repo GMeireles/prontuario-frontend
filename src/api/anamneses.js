@@ -16,3 +16,7 @@ export function updateAnamnese(id, data) {
 export function deleteAnamnese(id) {
   return http.delete(`/anamneses/${id}`).then((r) => unwrapData(r.data));
 }
+
+export function signAnamnese(id, payload) {
+  return http.post(`/anamneses/${id}/sign`, payload).then((r) => unwrapData(r.data));
+}
