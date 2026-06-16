@@ -1,68 +1,58 @@
 <template>
-  <div class="flex items-center justify-center h-screen bg-gray-100">
-    <div class="w-full max-w-md bg-white rounded-lg shadow p-6">
-      <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+  <div class="flex min-h-dvh items-center justify-center bg-primary p-4">
+    <div class="w-full max-w-md rounded-xl border border-theme bg-secondary p-6 shadow-lg">
+      <h2 class="text-2xl font-bold mb-6 text-center text-primary">Login</h2>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">E-mail</label>
-          <input
-            v-model="email"
-            type="email"
-            class="mt-1 block w-full border rounded-md p-2 focus:ring focus:ring-blue-300"
-            placeholder="seu@email.com"
-            required
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Senha</label>
-          <input
-            v-model="password"
-            type="password"
-            class="mt-1 block w-full border rounded-md p-2 focus:ring focus:ring-blue-300"
-            placeholder="********"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition"
-          :disabled="loading"
-        >
-          <span v-if="!loading">Entrar</span>
-          <span v-else>Entrando...</span>
-        </button>
+        <FormInput
+          v-model="email"
+          label="E-mail"
+          type="email"
+          placeholder="seu@email.com"
+          required
+        />
+        <FormInput
+          v-model="password"
+          label="Senha"
+          type="password"
+          placeholder="********"
+          required
+        />
+        <FormButton type="submit" variant="primary" class="w-full" :disabled="loading">
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </FormButton>
       </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useAuthStore } from '../store/AuthStore'
-import { useRouter } from 'vue-router'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import { ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { toast } from 'vue3-toastify';
+import { useAuthStore } from '../stores/auth.js';
+import { APP_HOME } from '../router/constants.js';
+import { FormInput, FormButton } from '../components/forms/index.js';
 
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
+const email = ref('');
+const password = ref('');
+const loading = ref(false);
 
-const auth = useAuthStore()
-const router = useRouter()
+const auth = useAuthStore();
+const router = useRouter();
+const route = useRoute();
 
 async function handleLogin() {
   try {
-    loading.value = true
-    await auth.login(email.value, password.value)
-    toast.success('Login realizado com sucesso!')
-    router.push('/dashboard')
+    loading.value = true;
+    await auth.login(email.value, password.value);
+    toast.success('Login realizado com sucesso!');
+    const redirect = route.query.redirect;
+    router.push(typeof redirect === 'string' ? redirect : APP_HOME);
   } catch (err) {
-    toast.error(err.response?.data?.error || 'Erro ao tentar logar')
+    toast.error(err.response?.data?.error || 'Erro ao tentar logar');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>

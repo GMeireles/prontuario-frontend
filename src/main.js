@@ -1,19 +1,13 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import { router } from './router/index.js';
+import { pinia } from './stores/index.js';
+import './style.css';
+import App from './App.vue';
+import 'vue3-toastify/dist/index.css';
 
-import App from './App.vue'
-import router from './router'
-import 'vue3-toastify/dist/index.css'
-import './assets/tailwind.css'
+const app = createApp(App);
 
-document.documentElement.classList.add("dark") // força dark mode padrão pelo tailwind
+app.use(pinia);
+app.use(router);
 
-
-const app = createApp(App)
-
-
-
-app.use(createPinia())
-app.use(router)
-
-app.mount('#app')
+app.mount('#app');

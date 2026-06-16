@@ -1,0 +1,327 @@
+@import "tailwindcss";
+
+/* Variáveis CSS para temas - Light (padrão melhorado) */
+:root,
+[data-theme="light"] {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-hover: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-accent: #3b82f6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
+/* Tema Dark (melhorado - mais suave e moderno) */
+[data-theme="dark"],
+.dark {
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #14141f;
+  --color-bg-tertiary: #1e1e2e;
+  --color-bg-hover: #2d2d44;
+  --color-text-primary: #e4e4e7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
+  --color-border: #27272a;
+  --color-border-hover: #3f3f46;
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-accent: #a78bfa;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+}
+
+/* Tema Purple/Amethyst (Roxo moderno e elegante) */
+[data-theme="amethyst"],
+.theme-amethyst {
+  --color-bg-primary: #1a0a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-tertiary: #0f3460;
+  --color-bg-hover: #1e3a5f;
+  --color-text-primary: #e9d5ff;
+  --color-text-secondary: #c4b5fd;
+  --color-text-tertiary: #a78bfa;
+  --color-border: #0f3460;
+  --color-border-hover: #1e3a5f;
+  --color-primary: #a78bfa;
+  --color-primary-hover: #c4b5fd;
+  --color-accent: #c084fc;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #818cf8;
+}
+
+/* Tema Midnight/Neon (Azul escuro com toques neon) */
+[data-theme="midnight"],
+.theme-midnight {
+  --color-bg-primary: #0a0e27;
+  --color-bg-secondary: #141b3d;
+  --color-bg-tertiary: #1e2746;
+  --color-bg-hover: #2a3557;
+  --color-text-primary: #e0e7ff;
+  --color-text-secondary: #c7d2fe;
+  --color-text-tertiary: #a5b4fc;
+  --color-border: #1e2746;
+  --color-border-hover: #2a3557;
+  --color-primary: #06b6d4;
+  --color-primary-hover: #22d3ee;
+  --color-accent: #3b82f6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+}
+
+/* Aplicação das variáveis em classes utilitárias */
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--color-bg-tertiary);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.border-theme {
+  border-color: var(--color-border);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+.bg-hover {
+  background-color: var(--color-bg-hover);
+}
+
+.bg-primary-color {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-color-hover {
+  background-color: var(--color-primary-hover);
+}
+
+.text-primary-color {
+  color: var(--color-primary);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-error {
+  border-color: var(--color-error);
+}
+
+.bg-error {
+  background-color: var(--color-error);
+}
+
+.bg-error-subtle {
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.bg-error\/10 {
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.border-error-subtle {
+  border-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+}
+
+.divide-theme > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-border);
+}
+
+/* Barras de rolagem alinhadas ao tema (Firefox + WebKit/Chromium) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-hover) var(--color-bg-secondary);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 9999px;
+  border: 2px solid var(--color-bg-secondary);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--color-bg-secondary);
+}
+
+/* Transições suaves para mudanças de tema */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Canvas de gráficos com background transparente */
+canvas { 
+  background: transparent !important; 
+}
+
+/* Tabelas padronizadas: altura uniforme e texto limitado */
+.table-uniform {
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.table-uniform th,
+.table-uniform td {
+  vertical-align: middle;
+}
+
+.table-uniform thead th {
+  font-weight: 400;
+}
+
+.table-row-uniform {
+  height: 4rem;
+}
+
+.table-uniform tbody tr {
+  transition: background-color 180ms ease;
+}
+
+.table-uniform tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* Contas a Receber / Contas a Pagar: mesma largura mínima, layout e altura de linha */
+.table-uniform.table-finance-accounts {
+  table-layout: auto;
+  min-width: 1200px;
+}
+
+.table-uniform.table-finance-accounts tbody tr.table-row-uniform {
+  height: auto;
+  min-height: 4rem;
+}
+
+.table-uniform.table-finance-accounts tbody tr.table-row-uniform td {
+  vertical-align: middle;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.table-uniform.table-finance-accounts tbody tr.table-row-uniform:first-child td {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.top-table-scrollbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 14px;
+  margin-bottom: 0.25rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+}
+
+.top-table-scrollbar[hidden] {
+  display: none;
+}
+
+.top-table-scrollbar__inner {
+  height: 1px;
+}
+
+.nav-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-item:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.router-link-active.nav-item {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+}

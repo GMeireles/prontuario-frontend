@@ -1,38 +1,102 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../store/AuthStore'
-import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import PacientesView from '../views/PacientesView.vue'
-import ConsultasView from '../views/ConsultasView.vue'
-import ProntuarioView from '../views/ProntuarioView.vue'
-import TenantsView from '../views/TenantsView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import AppLayout from '../app/layouts/AppLayout.vue';
+import MasterLayout from '../master/layouts/MasterLayout.vue';
+import { APP_HOME, APP_PREFIX, LOGIN_PATH, MASTER_PREFIX } from './constants.js';
+import { runNavigationGuards } from './guards/navigationGuards.js';
 
-const routes = [
-  { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
-  { path: '/', redirect: '/dashboard' },
-  { path: '/dashboard', component: DashboardView, meta: { title: 'Dashboard' } },
-  { path: '/patients', component: PacientesView, meta: { title: 'Pacientes' } },
-  { path: '/consultas', component: ConsultasView, meta: { title: 'Agenda' } },
-  { path: '/prontuario/:id', component: ProntuarioView, meta: { title: 'Prontuário' } },
-  { path: '/tenants', component: TenantsView, meta: { title: 'Clínicas', role: 'admin' } }
-]
+const LoginView = () => import('../views/LoginView.vue');
+const DashboardView = () => import('../views/DashboardView.vue');
+const PacientesView = () => import('../views/PacientesView.vue');
+const ConsultasView = () => import('../views/ConsultasView.vue');
+const ProntuarioView = () => import('../views/ProntuarioView.vue');
+const TenantsView = () => import('../views/TenantsView.vue');
 
-const router = createRouter({
+const legacyRedirects = [
+  ['/dashboard', `${APP_PREFIX}/dashboard`],
+  ['/patients', `${APP_PREFIX}/pacientes`],
+  ['/consultas', `${APP_PREFIX}/consultas`],
+  ['/tenants', `${MASTER_PREFIX}/clinicas`],
+].map(([path, redirect]) => ({ path, redirect }));
+
+export const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes: [
+    {
+      path: LOGIN_PATH,
+      name: 'login',
+      component: LoginView,
+      meta: {
+        title: 'Login',
+        requiresAuth: false,
+        context: 'public',
+        noLayout: true,
+      },
+    },
+    {
+      path: '/',
+      redirect: () =>
+        localStorage.getItem('accessToken') || localStorage.getItem('auth_token')
+          ? APP_HOME
+          : LOGIN_PATH,
+    },
+    ...legacyRedirects,
+    {
+      path: '/prontuario/:id',
+      redirect: (to) => `${APP_PREFIX}/prontuario/${to.params.id}`,
+    },
+    {
+      path: APP_PREFIX,
+      component: AppLayout,
+      meta: { requiresAuth: true, context: 'app', layout: 'app' },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'app-dashboard',
+          component: DashboardView,
+          meta: { title: 'Dashboard', requiresFeature: 'dashboard' },
+        },
+        {
+          path: 'pacientes',
+          name: 'app-pacientes',
+          component: PacientesView,
+          meta: { title: 'Pacientes', requiresFeature: 'patients' },
+        },
+        {
+          path: 'consultas',
+          name: 'app-consultas',
+          component: ConsultasView,
+          meta: { title: 'Agenda', requiresFeature: 'appointments' },
+        },
+        {
+          path: 'prontuario/:id',
+          name: 'app-prontuario',
+          component: ProntuarioView,
+          meta: { title: 'Prontuário', requiresFeature: 'patients' },
+        },
+      ],
+    },
+    {
+      path: MASTER_PREFIX,
+      component: MasterLayout,
+      meta: { requiresAuth: true, requiresMaster: true, context: 'master', layout: 'master' },
+      children: [
+        {
+          path: 'clinicas',
+          name: 'master-clinicas',
+          component: TenantsView,
+          meta: { title: 'Clínicas', requiresMaster: true },
+        },
+      ],
+    },
+  ],
+});
 
-// Guard de autenticação + roles
-router.beforeEach(async (to) => {
-  const auth = useAuthStore()
+router.beforeEach(runNavigationGuards);
 
-  if (!to.meta.public && !auth.isAuthenticated) {
-    return '/login'
+router.afterEach((to) => {
+  if (to.meta?.title) {
+    document.title = `${to.meta.title} — Prontuário`;
   }
+});
 
-  if (to.meta.role && auth.user?.role !== to.meta.role) {
-    return '/dashboard'
-  }
-})
-
-export default router
+export default router;
