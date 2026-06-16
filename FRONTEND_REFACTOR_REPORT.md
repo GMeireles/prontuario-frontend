@@ -210,3 +210,15 @@ Ver [`PHASE_4_API_PERMISSIONS_REPORT.md`](PHASE_4_API_PERMISSIONS_REPORT.md).
 - `api/response.js` — unwrap centralizado
 - `composables/usePermissions.js` + `authStore.can()`
 - UI condicionada por permissão nas views e abas do prontuário
+
+---
+
+## Fase 5 — Billing / SaaS (2026-06-16)
+
+Ver [`../PHASE_5_SAAS_STRIPE_REPORT.md`](../PHASE_5_SAAS_STRIPE_REPORT.md).
+
+- `api/billing.js`, `stores/billingStore.js`
+- Telas `/app/billing`, `/app/settings`
+- `SubscriptionBanner.vue` + interceptor 402
+- Menu billing apenas admin
+- Build: OK
