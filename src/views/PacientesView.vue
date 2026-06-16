@@ -5,24 +5,38 @@
       <FormButton v-if="can('patients.create')" variant="primary" @click="openModal()">+ Novo Paciente</FormButton>
     </div>
 
-    <FormInput
-      v-model="search"
-      placeholder="Buscar paciente..."
-      class="max-w-md"
-    />
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <FormInput v-model="filters.q" placeholder="Buscar por nome..." @keyup.enter="applyFilters" />
+      <FormInput v-model="filters.cpf" placeholder="CPF" @keyup.enter="applyFilters" />
+      <FormInput v-model="filters.phone" placeholder="Telefone" @keyup.enter="applyFilters" />
+      <FormSelect v-model="filters.active" label="Status" @change="applyFilters">
+        <option value="all">Todos</option>
+        <option value="true">Ativos</option>
+        <option value="false">Inativos</option>
+      </FormSelect>
+    </div>
+
+    <div class="flex gap-2">
+      <FormButton variant="secondary" size="sm" @click="applyFilters">Buscar</FormButton>
+      <FormButton variant="secondary" size="sm" @click="clearFilters">Limpar</FormButton>
+    </div>
 
     <div v-if="loading" class="text-secondary">Carregando pacientes...</div>
-    <div v-else-if="filteredPatients.length === 0" class="text-secondary">
+    <div v-else-if="patients.length === 0" class="text-secondary">
       Nenhum paciente encontrado.
     </div>
     <ul v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <li
-        v-for="patient in filteredPatients"
+        v-for="patient in patients"
         :key="patient.id"
         class="p-4 rounded-lg border border-theme bg-secondary flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
+        :class="patient.active === false ? 'opacity-70' : ''"
       >
         <div @click="goToProntuario(patient.id)" class="cursor-pointer flex-1 min-w-0">
-          <p class="font-semibold text-primary truncate">{{ patient.name }}</p>
+          <div class="flex items-center gap-2">
+            <p class="font-semibold text-primary truncate">{{ patient.name }}</p>
+            <span v-if="patient.active === false" class="text-xs px-2 py-0.5 rounded bg-warning/20 text-warning">Inativo</span>
+          </div>
           <p class="text-sm text-secondary">
             CPF: {{ patient.cpf || '---' }} | Tel: {{ patient.phone || '---' }}
           </p>
@@ -38,11 +52,28 @@
             Editar
           </FormButton>
           <FormButton size="sm" variant="danger" v-if="can('patients.delete')" @click="removePatient(patient.id)">
-            Excluir
+            Arquivar
           </FormButton>
         </div>
       </li>
     </ul>
+
+    <div v-if="pagination.totalPages > 1" class="flex items-center gap-3 text-sm">
+      <FormButton size="sm" variant="secondary" :disabled="pagination.page <= 1" @click="goPage(pagination.page - 1)">
+        Anterior
+      </FormButton>
+      <span class="text-secondary">
+        Página {{ pagination.page }} de {{ pagination.totalPages }} ({{ pagination.total }} pacientes)
+      </span>
+      <FormButton
+        size="sm"
+        variant="secondary"
+        :disabled="pagination.page >= pagination.totalPages"
+        @click="goPage(pagination.page + 1)"
+      >
+        Próxima
+      </FormButton>
+    </div>
 
     <PatientModal
       v-model="showModal"
@@ -53,23 +84,23 @@
 
     <ConfirmModal
       v-model="confirmDelete"
-      title="Excluir paciente"
-      message="Tem certeza que deseja excluir este paciente?"
+      title="Arquivar paciente"
+      message="Pacientes com histórico clínico serão arquivados. Deseja continuar?"
       confirm-type="danger"
-      confirm-text="Excluir"
+      confirm-text="Arquivar"
       @confirm="confirmRemovePatient"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
-import { FormInput, FormButton } from '../components/forms/index.js';
+import { FormInput, FormSelect, FormButton } from '../components/forms/index.js';
 import PatientModal from '../components/PatientModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
-import { listPatients, deletePatient } from '../api/patients.js';
+import { listPatients, archivePatient } from '../api/patients.js';
 import { usePermissions } from '../composables/usePermissions.js';
 
 const router = useRouter();
@@ -77,18 +108,38 @@ const { can } = usePermissions();
 
 const patients = ref([]);
 const loading = ref(true);
-const search = ref('');
 const showModal = ref(false);
 const editingPatient = ref(null);
 const confirmDelete = ref(false);
 const patientToDelete = ref(null);
+const pagination = ref({ page: 1, limit: 15, total: 0, totalPages: 0 });
+
+const filters = ref({
+  q: '',
+  cpf: '',
+  phone: '',
+  active: 'all',
+});
 
 onMounted(fetchPatients);
 
-async function fetchPatients() {
+async function fetchPatients(page = pagination.value.page) {
   try {
     loading.value = true;
-    patients.value = (await listPatients()) || [];
+    const params = {
+      page,
+      limit: pagination.value.limit,
+      sort: 'name',
+      order: 'asc',
+    };
+    if (filters.value.q) params.q = filters.value.q;
+    if (filters.value.cpf) params.cpf = filters.value.cpf;
+    if (filters.value.phone) params.phone = filters.value.phone;
+    if (filters.value.active !== 'all') params.active = filters.value.active;
+
+    const result = await listPatients(params);
+    patients.value = result.data || [];
+    pagination.value = result.pagination;
   } catch {
     toast.error('Erro ao carregar pacientes');
   } finally {
@@ -96,11 +147,18 @@ async function fetchPatients() {
   }
 }
 
-const filteredPatients = computed(() =>
-  patients.value.filter((p) =>
-    p.name.toLowerCase().includes(search.value.toLowerCase())
-  )
-);
+function applyFilters() {
+  fetchPatients(1);
+}
+
+function clearFilters() {
+  filters.value = { q: '', cpf: '', phone: '', active: 'all' };
+  fetchPatients(1);
+}
+
+function goPage(page) {
+  fetchPatients(page);
+}
 
 function goToProntuario(id) {
   router.push(`/app/prontuario/${id}`);
@@ -123,13 +181,13 @@ function removePatient(id) {
 
 async function confirmRemovePatient() {
   try {
-    await deletePatient(patientToDelete.value);
-    toast.success('Paciente removido com sucesso');
+    await archivePatient(patientToDelete.value);
+    toast.success('Paciente arquivado/removido com sucesso');
     confirmDelete.value = false;
     patientToDelete.value = null;
     await fetchPatients();
-  } catch {
-    toast.error('Erro ao remover paciente');
+  } catch (e) {
+    toast.error(e.response?.data?.message || 'Erro ao arquivar paciente');
   }
 }
 </script>

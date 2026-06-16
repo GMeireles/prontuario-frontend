@@ -130,7 +130,8 @@ async function loadAppointments() {
 
 async function loadPatients() {
   try {
-    patients.value = await listPatients();
+    const result = await listPatients({ limit: 100, active: 'true' });
+    patients.value = result.data || [];
   } catch {
     toast.error('Erro ao carregar pacientes');
   }

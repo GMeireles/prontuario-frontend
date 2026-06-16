@@ -35,3 +35,11 @@ export function unwrapList(payload) {
   const data = parsed.data;
   return Array.isArray(data) ? data : [];
 }
+
+export function unwrapPaginated(payload) {
+  const parsed = parseApiResponse(payload);
+  return {
+    data: Array.isArray(parsed.data) ? parsed.data : [],
+    pagination: parsed.pagination || { page: 1, limit: 15, total: 0, totalPages: 0 },
+  };
+}
