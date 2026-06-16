@@ -222,3 +222,14 @@ Ver [`../PHASE_5_SAAS_STRIPE_REPORT.md`](../PHASE_5_SAAS_STRIPE_REPORT.md).
 - `SubscriptionBanner.vue` + interceptor 402
 - Menu billing apenas admin
 - Build: OK
+
+---
+
+## Fase 6 — Pacientes + AASI (2026-06-16)
+
+Ver [`../PHASE_6_PATIENTS_AASI_REPORT.md`](../PHASE_6_PATIENTS_AASI_REPORT.md).
+
+- Listagem paginada com filtros server-side
+- Abas Resumo, Agenda, AASI no prontuário
+- `PatientAasiTab`, `PatientSummaryTab`, `api/patientAasis.js`
+- Build: OK
