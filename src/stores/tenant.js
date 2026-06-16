@@ -17,11 +17,22 @@ export const useTenantStore = defineStore('tenant', {
       return state.tenants.find((t) => t.id === parseInt(state.tenantId, 10)) || null;
     },
 
-    isSubscriptionAccessAllowed: () => true,
-    requiresSubscriptionPayment: () => false,
-    subscriptionBlockReason: () => null,
-    trialEndsAt: () => null,
-    isSubscriptionActive: () => true,
+    isSubscriptionAccessAllowed: () => {
+      const billing = useBillingStore();
+      return billing.isSubscriptionActive;
+    },
+    requiresSubscriptionPayment: () => {
+      const billing = useBillingStore();
+      return billing.hasSubscriptionProblem;
+    },
+    subscriptionBlockReason: () => {
+      const billing = useBillingStore();
+      return billing.subscriptionStatus;
+    },
+    isSubscriptionActive: () => {
+      const billing = useBillingStore();
+      return billing.isSubscriptionActive;
+    },
     currentPlanId: (state) => state.currentTenant?.plan_id || null,
 
     can: () => {
