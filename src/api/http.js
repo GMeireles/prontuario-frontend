@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth.js';
 import { useTenantStore } from '../stores/tenant.js';
-import { LOGIN_PATH, SUBSCRIPTION_PATH } from '../router/constants.js';
+import { LOGIN_PATH, SUBSCRIPTION_PATH, SETTINGS_PATH } from '../router/constants.js';
 
 const base = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 const baseURL = String(base || '').replace(/\/+$/, '');
@@ -24,7 +24,7 @@ http.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const noTenantRoutes = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/me'];
+    const noTenantRoutes = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/me', '/billing/plans'];
     const needsTenant = !noTenantRoutes.some((route) => config.url?.includes(route));
 
     const tenantId = tenant?.tenantId;
@@ -72,14 +72,17 @@ http.interceptors.response.use(
       try {
         if (typeof window !== 'undefined') {
           const p = window.location.pathname;
-          const isOnSubscription =
-            p === SUBSCRIPTION_PATH || p.startsWith(`${SUBSCRIPTION_PATH}/`);
-          if (!isOnSubscription) {
+          const isOnBilling =
+            p === SUBSCRIPTION_PATH ||
+            p.startsWith(`${SUBSCRIPTION_PATH}/`) ||
+            p === SETTINGS_PATH ||
+            p.startsWith(`${SETTINGS_PATH}/`);
+          if (!isOnBilling) {
             window.location.href = `${SUBSCRIPTION_PATH}?expired=1`;
           }
         }
       } catch (e) {
-        console.error('Erro ao redirecionar para assinatura:', e);
+        console.error('Erro ao redirecionar para billing:', e);
       }
       return Promise.reject(err);
     }
