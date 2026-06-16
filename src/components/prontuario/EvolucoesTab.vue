@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <h2 class="text-lg font-semibold text-primary">Evoluções Clínicas</h2>
 
-    <div class="rounded-lg border border-theme bg-secondary p-4 space-y-3">
+    <div v-if="can('evolutions.create')" class="rounded-lg border border-theme bg-secondary p-4 space-y-3">
       <FormTextarea
         v-model="newNote"
         placeholder="Escreva a evolução clínica..."
@@ -35,10 +35,10 @@
           <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-2 text-sm text-secondary">
             <span>{{ formatDate(ev.created_at) }} — {{ ev.professional?.name || 'Profissional' }}</span>
             <div class="flex gap-3">
-              <button type="button" class="text-primary-color hover:underline" @click="startEdit(ev)">
+              <button v-if="can('evolutions.update')" type="button" class="text-primary-color hover:underline" @click="startEdit(ev)">
                 Editar
               </button>
-              <button type="button" class="text-error hover:underline" @click="removeEvolution(ev.id)">
+              <button v-if="can('evolutions.update')" type="button" class="text-error hover:underline" @click="removeEvolution(ev.id)">
                 Excluir
               </button>
             </div>
@@ -59,7 +59,9 @@ import {
   updateEvolution as updateEvolutionAPI,
   deleteEvolution,
 } from '../../api/evolutions.js';
+import { usePermissions } from '../../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const props = defineProps({
   patientId: { type: Number, required: true },
 });

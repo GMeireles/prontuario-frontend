@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
-import { login as loginAPI, refresh as refreshAPI, logout as logoutAPI } from '../api/auth.js';
+import { login as loginAPI, refresh as refreshAPI, logout as logoutAPI, getMe } from '../api/auth.js';
 import { useTenantStore } from './tenant.js';
 
 function safeParseUser() {
@@ -51,7 +51,15 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.accessToken,
     userEmail: (state) => state.user?.email || null,
     userName: (state) => state.user?.name || state.user?.full_name || null,
+    userRole: (state) => state.user?.role || null,
+    userProfile: (state) => state.user?.profile || state.user?.role || null,
+    permissions: (state) => state.user?.permissions || [],
     isMaster: (state) => state.user?.role === 'admin',
+    can: (state) => (permission) => {
+      if (!permission) return true;
+      if (state.user?.role === 'admin') return true;
+      return (state.user?.permissions || []).includes(permission);
+    },
     masterPermissions: () => [],
     canMaster: (state) => () => state.user?.role === 'admin',
   },
@@ -78,10 +86,15 @@ export const useAuthStore = defineStore('auth', {
 
         const tenantStore = useTenantStore();
         tenantStore.syncFromAuth();
+        await this.fetchUser();
 
         return { success: true };
       } catch (error) {
-        this.error = error.response?.data?.error || error.message || 'Erro ao fazer login';
+        this.error =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          'Erro ao fazer login';
         throw error;
       } finally {
         this.loading = false;
@@ -96,6 +109,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { accessToken } = await refreshAPI(this.refreshToken);
         this.setSession(accessToken, this.refreshToken);
+        await this.fetchUser();
       } catch {
         this.logout();
       }
@@ -103,7 +117,12 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       if (!this.accessToken) return;
-      this.user = decodeUserFromToken(this.accessToken);
+      try {
+        const me = await getMe();
+        this.user = { ...decodeUserFromToken(this.accessToken), ...me };
+      } catch {
+        this.user = decodeUserFromToken(this.accessToken);
+      }
       if (this.user) {
         localStorage.setItem('user', JSON.stringify(this.user));
         localStorage.setItem('auth_user', JSON.stringify(this.user));
@@ -116,6 +135,9 @@ export const useAuthStore = defineStore('auth', {
       }
       const tenantStore = useTenantStore();
       tenantStore.syncFromAuth();
+      if (this.accessToken) {
+        this.fetchUser().catch(() => {});
+      }
     },
 
     logout() {

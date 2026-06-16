@@ -21,49 +21,50 @@
       </nav>
     </div>
 
-    <div v-if="activeTab === 'dados'">
-      <h2 class="text-lg font-semibold mb-2 text-primary">Dados do Paciente</h2>
-      <div class="rounded-lg border border-theme bg-secondary p-4 space-y-2">
-        <p class="text-primary"><strong>Nome:</strong> {{ patient?.name }}</p>
-        <p class="text-primary"><strong>Email:</strong> {{ patient?.email || 'Sem e-mail' }}</p>
-        <p class="text-primary"><strong>Data de Nascimento:</strong> {{ formatDate(patient?.birth_date) }}</p>
-      </div>
-    </div>
-
+    <PatientSummaryTab v-if="activeTab === 'resumo'" :patient-id="patientId" />
+    <PatientDataTab v-else-if="activeTab === 'dados'" :patient="patient" />
     <AnamneseTab v-else-if="activeTab === 'anamnese'" :patient-id="patientId" />
     <EvolucoesTab v-else-if="activeTab === 'evolucoes'" :patient-id="patientId" />
-    <PrescricoesTab v-else-if="activeTab === 'prescricoes'" :patient-id="patientId" />
+    <PatientAppointmentsTab v-else-if="activeTab === 'agenda'" :patient-id="patientId" />
     <ArquivosTab v-else-if="activeTab === 'arquivos'" :patient-id="patientId" />
+    <PrescricoesTab v-else-if="activeTab === 'prescricoes'" :patient-id="patientId" />
+    <PatientAasiTab v-else-if="activeTab === 'aasi'" :patient-id="patientId" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPatient } from '../api/patients.js';
+import { usePermissions } from '../composables/usePermissions.js';
+import PatientSummaryTab from '../components/prontuario/PatientSummaryTab.vue';
+import PatientDataTab from '../components/prontuario/PatientDataTab.vue';
+import PatientAppointmentsTab from '../components/prontuario/PatientAppointmentsTab.vue';
+import PatientAasiTab from '../components/prontuario/PatientAasiTab.vue';
 import AnamneseTab from '../components/prontuario/AnamneseTab.vue';
 import EvolucoesTab from '../components/prontuario/EvolucoesTab.vue';
 import PrescricoesTab from '../components/prontuario/PrescricoesTab.vue';
 import ArquivosTab from '../components/prontuario/ArquivosTab.vue';
 
 const route = useRoute();
+const { can } = usePermissions();
 const patientId = Number(route.params.id);
 
 const patient = ref(null);
-const activeTab = ref('dados');
+const activeTab = ref('resumo');
 
-const tabs = [
-  { key: 'dados', label: 'Dados' },
-  { key: 'anamnese', label: 'Anamnese' },
-  { key: 'evolucoes', label: 'Evoluções' },
-  { key: 'prescricoes', label: 'Prescrições' },
-  { key: 'arquivos', label: 'Arquivos' },
+const allTabs = [
+  { key: 'resumo', label: 'Resumo', permission: 'patients.view' },
+  { key: 'dados', label: 'Dados', permission: 'patients.view' },
+  { key: 'anamnese', label: 'Anamnese', permission: 'anamneses.view' },
+  { key: 'evolucoes', label: 'Evoluções', permission: 'evolutions.view' },
+  { key: 'agenda', label: 'Agenda', permission: 'appointments.view' },
+  { key: 'arquivos', label: 'Arquivos', permission: 'files.view' },
+  { key: 'prescricoes', label: 'Prescrições', permission: 'prescriptions.view' },
+  { key: 'aasi', label: 'AASI', permission: 'aasis.view' },
 ];
 
-function formatDate(date) {
-  if (!date) return '-';
-  return new Date(date).toLocaleDateString('pt-BR');
-}
+const tabs = computed(() => allTabs.filter((t) => can(t.permission)));
 
 onMounted(async () => {
   patient.value = await getPatient(patientId);

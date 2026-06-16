@@ -7,15 +7,20 @@
   >
     <form class="space-y-4" @submit.prevent="submit">
       <FormInput v-model="form.name" label="Nome" required />
-      <FormInput v-model="form.cpf" label="CPF" maxlength="11" />
-      <FormSelect v-model="form.gender" label="Sexo" placeholder="Selecione...">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <FormInput v-model="form.cpf" label="CPF" maxlength="11" required />
+        <FormInput v-model="form.rg" label="RG" />
+      </div>
+      <FormSelect v-model="form.gender" label="Sexo" placeholder="Selecione..." required>
         <option value="M">Masculino</option>
         <option value="F">Feminino</option>
         <option value="O">Outro</option>
       </FormSelect>
-      <FormInput v-model="form.birth_date" label="Data de nascimento" type="date" />
-      <FormInput v-model="form.phone" label="Telefone" />
-      <FormInput v-model="form.email" label="E-mail" type="email" />
+      <FormInput v-model="form.birth_date" label="Data de nascimento" type="date" required />
+      <div class="grid sm:grid-cols-2 gap-3">
+        <FormInput v-model="form.phone" label="Telefone" />
+        <FormInput v-model="form.email" label="E-mail" type="email" />
+      </div>
       <FormInput v-model="form.address" label="Endereço" />
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FormInput v-model="form.city" label="Cidade" />
@@ -23,6 +28,7 @@
         <FormInput v-model="form.zip_code" label="CEP" />
       </div>
       <FormInput v-model="form.responsible_name" label="Responsável (se menor)" />
+      <FormTextarea v-model="form.notes" label="Observações" :rows="3" />
     </form>
 
     <template #footer>
@@ -38,7 +44,7 @@
 import { ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import { toast } from 'vue3-toastify';
-import { BaseModal, FormInput, FormSelect, FormButton } from './forms/index.js';
+import { BaseModal, FormInput, FormSelect, FormTextarea, FormButton } from './forms/index.js';
 import { createPatient, updatePatient } from '../api/patients.js';
 
 const props = defineProps({
@@ -55,6 +61,7 @@ const emptyForm = () => ({
   id: null,
   name: '',
   cpf: '',
+  rg: '',
   gender: '',
   birth_date: '',
   phone: '',
@@ -64,6 +71,7 @@ const emptyForm = () => ({
   state: '',
   zip_code: '',
   responsible_name: '',
+  notes: '',
 });
 
 const form = ref(emptyForm());
@@ -96,6 +104,7 @@ async function submit() {
         ? dayjs(form.value.birth_date).format('YYYY-MM-DD')
         : null,
     };
+    delete payload.id;
 
     if (form.value.id) {
       await updatePatient(form.value.id, payload);
@@ -109,6 +118,7 @@ async function submit() {
     open.value = false;
   } catch (e) {
     const msg =
+      e.response?.data?.message ||
       e.response?.data?.errors?.[0]?.msg ||
       e.response?.data?.error ||
       'Erro ao salvar paciente';

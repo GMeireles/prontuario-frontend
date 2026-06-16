@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <h2 class="text-lg font-bold text-primary">Prescrições</h2>
-      <FormButton variant="primary" @click="openCreateModal">Nova Prescrição</FormButton>
+      <FormButton v-if="can('prescriptions.create')" variant="primary" @click="openCreateModal">Nova Prescrição</FormButton>
     </div>
 
     <div class="flex flex-wrap gap-3">
@@ -27,25 +27,25 @@
             <p class="text-secondary">{{ p.description }}</p>
             <small class="text-tertiary">
               {{ p.professional?.name }} —
-              {{ new Date(p.createdAt).toLocaleDateString() }}
+              {{ new Date(p.created_at || p.createdAt).toLocaleDateString() }}
             </small>
           </div>
           <div class="flex flex-wrap gap-2 shrink-0">
-            <FormButton size="sm" variant="secondary" @click="editPrescription(p)">Editar</FormButton>
-            <FormButton size="sm" variant="danger" @click="deletePrescription(p.id)">Excluir</FormButton>
+            <FormButton v-if="can('prescriptions.update')" size="sm" variant="secondary" @click="editPrescription(p)">Editar</FormButton>
+            <FormButton v-if="can('prescriptions.update')" size="sm" variant="danger" @click="deletePrescription(p.id)">Excluir</FormButton>
           </div>
         </div>
 
         <div class="mt-3 pt-3 border-t border-theme">
           <h4 class="font-medium mb-2 text-primary">Arquivos</h4>
-          <label class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
+          <label v-if="can('prescriptions.update')" class="inline-flex items-center px-4 py-2 rounded-lg border border-theme bg-tertiary text-primary cursor-pointer hover:bg-hover transition text-sm">
             Enviar Arquivo
             <input type="file" class="hidden" @change="(e) => handleFileUpload(e, p.id)" />
           </label>
 
           <ul class="mt-3 space-y-2">
             <li
-              v-for="pf in p.prescription_files"
+              v-for="pf in (p.prescription_files || [])"
               :key="pf.id"
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border border-theme bg-primary"
             >
@@ -130,7 +130,9 @@ import {
   removePrescriptionFile,
 } from '../../api/prescriptions.js';
 import { uploadFile, downloadFile as downloadFileAPI } from '../../api/files.js';
+import { usePermissions } from '../../composables/usePermissions.js';
 
+const { can } = usePermissions();
 const props = defineProps({
   patientId: { type: Number, required: true },
 });
@@ -157,8 +159,8 @@ async function fetchPrescriptions() {
       limit: pagination.value.limit,
       type: filters.value.type,
     });
-    prescriptions.value = res.data;
-    pagination.value = res.pagination;
+    prescriptions.value = res.data || [];
+    pagination.value = res.pagination || { page: 1, totalPages: 1, limit: 10 };
   } catch {
     toast.error('Erro ao carregar prescrições');
   }

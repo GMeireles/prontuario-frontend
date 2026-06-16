@@ -186,3 +186,61 @@ front-end/src/
 ---
 
 *Refatoração concluída conforme MIGRATION_PLAN.md Fase 2.*
+
+---
+
+## Fase 3 — Auditoria de integração (2026-06-16)
+
+Ver [`INTEGRATION_AUDIT_REPORT.md`](INTEGRATION_AUDIT_REPORT.md) para detalhes completos.
+
+**Correções frontend nesta fase:**
+- Refresh token automático no interceptor HTTP (401)
+- Tipos de arquivo alinhados ao ENUM do backend
+- `created_at` / unwrap de respostas `{ success, data }`
+- `fetchUser()` via `/auth/me` após login
+
+**Build pós-auditoria:** `npm run build` — OK (136 módulos).
+
+---
+
+## Fase 4 — Contrato API + permissões (2026-06-16)
+
+Ver [`PHASE_4_API_PERMISSIONS_REPORT.md`](PHASE_4_API_PERMISSIONS_REPORT.md).
+
+- `api/response.js` — unwrap centralizado
+- `composables/usePermissions.js` + `authStore.can()`
+- UI condicionada por permissão nas views e abas do prontuário
+
+---
+
+## Fase 5 — Billing / SaaS (2026-06-16)
+
+Ver [`../PHASE_5_SAAS_STRIPE_REPORT.md`](../PHASE_5_SAAS_STRIPE_REPORT.md).
+
+- `api/billing.js`, `stores/billingStore.js`
+- Telas `/app/billing`, `/app/settings`
+- `SubscriptionBanner.vue` + interceptor 402
+- Menu billing apenas admin
+- Build: OK
+
+---
+
+## Fase 6 — Pacientes + AASI (2026-06-16)
+
+Ver [`../PHASE_6_PATIENTS_AASI_REPORT.md`](../PHASE_6_PATIENTS_AASI_REPORT.md).
+
+- Listagem paginada com filtros server-side
+- Abas Resumo, Agenda, AASI no prontuário
+- `PatientAasiTab`, `PatientSummaryTab`, `api/patientAasis.js`
+- Build: OK
+
+---
+
+## Fase 7 — Anamnese flexível + assinatura (2026-06-16)
+
+Ver [`../PHASE_7_ANAMNESE_SIGNATURE_REPORT.md`](../PHASE_7_ANAMNESE_SIGNATURE_REPORT.md).
+
+- `DynamicFormRenderer`, `AnamneseSignatureModal`, `AnamneseLegacyView`
+- Refatoração `AnamneseTab` (legado/flexível/assinatura)
+- `AnamneseTemplatesView` + rota `/app/settings/anamnese-templates`
+- Build: OK

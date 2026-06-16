@@ -10,11 +10,15 @@ export const APP_HOME = `${APP_PREFIX}/dashboard`;
 /** Entrada da área master */
 export const MASTER_ENTRY = `${MASTER_PREFIX}/clinicas`;
 
-/** Tela de assinatura (stub — backend ainda não implementa billing) */
-export const SUBSCRIPTION_PATH = `${APP_PREFIX}/assinatura`;
+/** Tela de billing / assinatura */
+export const SUBSCRIPTION_PATH = `${APP_PREFIX}/billing`;
+
+export const BILLING_PATH = SUBSCRIPTION_PATH;
+export const SETTINGS_PATH = `${APP_PREFIX}/settings`;
 
 export const SUBSCRIPTION_ALLOWED_PATHS = [
   SUBSCRIPTION_PATH,
+  SETTINGS_PATH,
   '/obrigado',
   '/billing/success',
   '/billing/cancel',

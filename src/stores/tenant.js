@@ -4,10 +4,6 @@ import { listTenants } from '../api/tenants.js';
 
 let fetchTenantsInFlight = null;
 
-/**
- * Stub de tenant store — backend ainda não expõe /auth/my-tenants.
- * Deriva tenant_id do JWT e libera todas as features.
- */
 export const useTenantStore = defineStore('tenant', {
   state: () => ({
     tenantId: localStorage.getItem('tenant_id') || null,
@@ -21,16 +17,28 @@ export const useTenantStore = defineStore('tenant', {
       return state.tenants.find((t) => t.id === parseInt(state.tenantId, 10)) || null;
     },
 
-    isSubscriptionAccessAllowed: () => true,
-    requiresSubscriptionPayment: () => false,
-    subscriptionBlockReason: () => null,
-    trialEndsAt: () => null,
-    isSubscriptionActive: () => true,
+    isSubscriptionAccessAllowed: () => {
+      const billing = useBillingStore();
+      return billing.isSubscriptionActive;
+    },
+    requiresSubscriptionPayment: () => {
+      const billing = useBillingStore();
+      return billing.hasSubscriptionProblem;
+    },
+    subscriptionBlockReason: () => {
+      const billing = useBillingStore();
+      return billing.subscriptionStatus;
+    },
+    isSubscriptionActive: () => {
+      const billing = useBillingStore();
+      return billing.isSubscriptionActive;
+    },
     currentPlanId: (state) => state.currentTenant?.plan_id || null,
 
-    permissions: () => ({}),
-
-    can: () => () => true,
+    can: () => {
+      const auth = useAuthStore();
+      return (permission) => auth.can(permission);
+    },
   },
 
   actions: {

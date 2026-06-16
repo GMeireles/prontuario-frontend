@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth.js';
 import { useTenantStore } from '../stores/tenant.js';
-import { LOGIN_PATH, SUBSCRIPTION_PATH } from '../router/constants.js';
+import { LOGIN_PATH, SUBSCRIPTION_PATH, SETTINGS_PATH } from '../router/constants.js';
 
 const base = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 const baseURL = String(base || '').replace(/\/+$/, '');
@@ -24,7 +24,7 @@ http.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const noTenantRoutes = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/me'];
+    const noTenantRoutes = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/me', '/billing/plans'];
     const needsTenant = !noTenantRoutes.some((route) => config.url?.includes(route));
 
     const tenantId = tenant?.tenantId;
@@ -43,16 +43,27 @@ http.interceptors.response.use(
     const cfg = err?.config;
     const status = err?.response?.status;
 
-    if (status === 401 && !cfg?.url?.includes('/auth/login')) {
+    if (status === 401 && cfg && !cfg.url?.includes('/auth/login') && !cfg.url?.includes('/auth/refresh')) {
       try {
-        const { useAuthStore } = await import('../stores/auth.js');
         const authStore = useAuthStore();
+        if (authStore.refreshToken && !cfg.__isRetryAfterRefresh) {
+          cfg.__isRetryAfterRefresh = true;
+          await authStore.refresh();
+          cfg.headers.Authorization = `Bearer ${authStore.accessToken}`;
+          return http(cfg);
+        }
         authStore.logout();
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith(LOGIN_PATH)) {
           window.location.href = LOGIN_PATH;
         }
       } catch (e) {
-        console.error('Erro ao fazer logout:', e);
+        console.error('Erro ao renovar token:', e);
+        try {
+          const authStore = useAuthStore();
+          authStore.logout();
+        } catch {
+          /* ignore */
+        }
       }
       return Promise.reject(err);
     }
@@ -61,14 +72,17 @@ http.interceptors.response.use(
       try {
         if (typeof window !== 'undefined') {
           const p = window.location.pathname;
-          const isOnSubscription =
-            p === SUBSCRIPTION_PATH || p.startsWith(`${SUBSCRIPTION_PATH}/`);
-          if (!isOnSubscription) {
+          const isOnBilling =
+            p === SUBSCRIPTION_PATH ||
+            p.startsWith(`${SUBSCRIPTION_PATH}/`) ||
+            p === SETTINGS_PATH ||
+            p.startsWith(`${SETTINGS_PATH}/`);
+          if (!isOnBilling) {
             window.location.href = `${SUBSCRIPTION_PATH}?expired=1`;
           }
         }
       } catch (e) {
-        console.error('Erro ao redirecionar para assinatura:', e);
+        console.error('Erro ao redirecionar para billing:', e);
       }
       return Promise.reject(err);
     }
