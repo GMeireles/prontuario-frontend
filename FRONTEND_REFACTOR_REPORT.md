@@ -200,3 +200,13 @@ Ver [`INTEGRATION_AUDIT_REPORT.md`](INTEGRATION_AUDIT_REPORT.md) para detalhes c
 - `fetchUser()` via `/auth/me` após login
 
 **Build pós-auditoria:** `npm run build` — OK (136 módulos).
+
+---
+
+## Fase 4 — Contrato API + permissões (2026-06-16)
+
+Ver [`PHASE_4_API_PERMISSIONS_REPORT.md`](PHASE_4_API_PERMISSIONS_REPORT.md).
+
+- `api/response.js` — unwrap centralizado
+- `composables/usePermissions.js` + `authStore.can()`
+- UI condicionada por permissão nas views e abas do prontuário
